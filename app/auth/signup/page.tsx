@@ -27,6 +27,7 @@ export default function Page() {
   const [password, setPassword] = useState('')
   const [repeatPassword, setRepeatPassword] = useState('')
   const [fullName, setFullName] = useState('')
+  const [username, setUsername] = useState('')
   const [role, setRole] = useState<'student' | 'professor'>('student')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -54,6 +55,7 @@ export default function Page() {
             `${window.location.origin}/dashboard`,
           data: {
             full_name: fullName,
+            username: username,
             role: role,
           },
         },
@@ -88,6 +90,17 @@ export default function Page() {
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                      id="username"
+                      type="text"
+                      placeholder="johndoe"
+                      required
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
                     />
                   </div>
                   <div className="grid gap-2">

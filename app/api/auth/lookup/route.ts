@@ -1,7 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
-// This endpoint looks up a user's email by their username/full_name
+// This endpoint looks up a user's email by their username or full_name using the database
 export async function POST(request: Request) {
   try {
     const { identifier } = await request.json()
@@ -15,33 +15,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ email: identifier })
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const supabase = await createClient()
 
-    if (!supabaseUrl || !serviceRoleKey) {
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
-    }
+    // Search for user by username or full_name in the profiles table (case-insensitive)
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('email')
+      .or(`username.ilike.${identifier},full_name.ilike.${identifier}`)
+      .limit(1)
+      .single()
 
-    // Otherwise, search for a user by full_name using service role
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey)
-
-    const { data, error } = await supabaseAdmin.auth.admin.listUsers()
-
-    if (error) {
-      console.error('Error looking up user:', error)
-      return NextResponse.json({ error: 'Lookup failed' }, { status: 500 })
-    }
-
-    // Find user by full_name (case-insensitive)
-    const user = data.users.find(
-      (u) => u.user_metadata?.full_name?.toLowerCase() === identifier.toLowerCase()
-    )
-
-    if (!user || !user.email) {
+    if (error || !profile) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ email: user.email })
+    return NextResponse.json({ email: profile.email })
   } catch (error) {
     console.error('Error in lookup API:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
