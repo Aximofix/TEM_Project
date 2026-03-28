@@ -89,6 +89,12 @@ export default function MyCoursesPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-4">{course.description}</p>
+                {course.enrollment_code && (
+                  <div className="bg-muted p-2 rounded mb-4">
+                    <p className="text-xs text-muted-foreground">Enrollment Code</p>
+                    <p className="font-mono font-bold">{course.enrollment_code}</p>
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <Link href={`/dashboard/courses/${course.id}`}>
                     <Button size="sm" variant="outline" className="flex-1">

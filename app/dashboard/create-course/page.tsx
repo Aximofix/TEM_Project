@@ -39,6 +39,9 @@ export default function CreateCoursePage() {
         return
       }
 
+      // Generate a unique enrollment code (8 characters)
+      const enrollmentCode = `${code.toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`
+
       const { data, error: insertError } = await supabase
         .from('courses')
         .insert({
@@ -46,6 +49,7 @@ export default function CreateCoursePage() {
           title,
           code,
           description,
+          enrollment_code: enrollmentCode,
         })
         .select()
 

@@ -20,6 +20,21 @@ export default function GradesPage() {
 
         if (!user) return
 
+        // Get submissions for this student first
+        const { data: studentSubmissions } = await supabase
+          .from('submissions')
+          .select('id')
+          .eq('student_id', user.id)
+
+        const submissionIds = studentSubmissions?.map((s: any) => s.id) || []
+
+        // If no submissions, skip the grades query
+        if (submissionIds.length === 0) {
+          setGrades([])
+          setLoading(false)
+          return
+        }
+
         // Get grades for submissions
         const { data, error } = await supabase
           .from('grades')
@@ -32,6 +47,7 @@ export default function GradesPage() {
             submissions(
               id,
               assignment_id,
+              student_id,
               assignments(
                 title,
                 courses(title, code)
@@ -39,7 +55,7 @@ export default function GradesPage() {
             )
           `
           )
-          .eq('submissions.student_id', user.id)
+          .in('submission_id', submissionIds)
           .order('graded_at', { ascending: false })
 
         if (error) throw error

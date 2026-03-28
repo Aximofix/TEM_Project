@@ -21,19 +21,26 @@ export default function AssignmentsPage() {
 
         if (!user) return
 
+        // Get enrolled course IDs first
+        const { data: enrollments } = await supabase
+          .from('enrollments')
+          .select('course_id')
+          .eq('student_id', user.id)
+
+        const courseIds = enrollments?.map((e: any) => e.course_id) || []
+
+        // If no enrollments, skip the assignments query
+        if (courseIds.length === 0) {
+          setAssignments([])
+          setLoading(false)
+          return
+        }
+
         // Get assignments for enrolled courses
         const { data, error } = await supabase
           .from('assignments')
           .select('*, courses(title, code)')
-          .in(
-            'course_id',
-            (
-              await supabase
-                .from('enrollments')
-                .select('course_id')
-                .eq('student_id', user.id)
-            ).data?.map((e: any) => e.course_id) || []
-          )
+          .in('course_id', courseIds)
           .order('due_date', { ascending: true })
 
         if (error) throw error
